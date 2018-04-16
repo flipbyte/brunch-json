@@ -6,8 +6,8 @@ class FlutterConfig {
             return Promise.resolve(file);
         }
 
-        var patt = /\"require\((['"](.*)['"])\)\"/g;
-        var replacement = "require('$2')";
+        var patt = /\"require\((['"](.*)['"])\)(.*)\"/g;
+        var replacement = "require('$2')$3";
         file.data = file.data.replace(patt, replacement);
         file.data = file.data.replace(/\\\//g, '/');
         file.data = `module.exports = ${file.data}`;
