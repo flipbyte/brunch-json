@@ -1,0 +1,16 @@
+{
+  "name": "flutter-config-brunch",
+  "version": "1.0.0",
+  "description": "Convert flutter json config to js",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@bitbucket.org/eonsequeira/flutter-config-brunch.git"
+  },
+  "author": "“Eon <“eons@yahoo.com”> (http:/www.fluttercms.com)",
+  "license": "ISC",
+  "homepage": "https://bitbucket.org/eonsequeira/flutter-config-brunch#readme"
+}
