@@ -10,7 +10,7 @@ class FlutterConfig {
         var replacement = "require('$2')$3";
         file.data = file.data.replace(patt, replacement);
         file.data = file.data.replace(/\\\//g, '/');
-        file.data = `export default ${file.data}`;
+        file.data = `exports.default = ${file.data}`;
         return Promise.resolve(file);
     }
 }
