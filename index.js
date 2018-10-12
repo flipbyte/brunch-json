@@ -12,7 +12,6 @@ class FlutterConfig {
         var imports = [];
         if(data && data.imports) {
             forEach(data.imports, function(value, key) {
-                // console.log(key, value);
                 imports.push(`const ${key} = ${value};`);
             });
 
