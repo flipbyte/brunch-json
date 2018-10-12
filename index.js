@@ -1,16 +1,34 @@
 'use strict';
 
+var forEach = require('lodash.foreach');
+
 class FlutterConfig {
     compile(file) {
         if (!file || !file.data) {
             return Promise.resolve(file);
         }
 
-        var patt = /\"require\((['"](.*)['"])\)(.*)\"/g;
-        var replacement = "require('$2')$3";
-        file.data = file.data.replace(patt, replacement);
-        file.data = file.data.replace(/\\\//g, '/');
-        file.data = `exports.default = ${file.data}`;
+        let data = JSON.parse(file.data);
+        var imports = [];
+        if(data && data.imports) {
+            forEach(data.imports, function(value, key) {
+                // console.log(key, value);
+                imports.push(`const ${key} = ${value};`);
+            });
+
+            delete data.imports;
+        }
+
+        data = JSON.stringify(data, null, 4);
+        var patt = /\"%%(.+)%%\"/g;
+        var replacement = "$1";
+        data = data.replace(patt, replacement);
+        data = data.replace(/\\\//g, '/');
+
+        file.data = `${imports.join('\n')}`;
+        file.data += imports.length > 0 ? `\n` : '';
+        file.data += `exports.default = ${data}`;
+
         return Promise.resolve(file);
     }
 }

@@ -12,5 +12,8 @@
   },
   "author": "“Eon <“eons@yahoo.com”> (http:/www.fluttercms.com)",
   "license": "ISC",
-  "homepage": "https://bitbucket.org/eonsequeira/flutter-config-brunch#readme"
+  "homepage": "https://bitbucket.org/eonsequeira/flutter-config-brunch#readme",
+  "dependencies": {
+    "lodash.foreach": "^4.5.0"
+  }
 }
