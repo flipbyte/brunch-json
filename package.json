@@ -11,7 +11,7 @@
     ],
     "repository": {
         "type": "git",
-        "url": "https://github.com/flipbyte/formik-json-schema.git"
+        "url": "https://github.com/flipbyte/brunch-json.git"
     },
     "scripts": {
         "build": "nwb build-web-module --no-demo",
