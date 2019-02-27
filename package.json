@@ -1,19 +1,44 @@
 {
-  "name": "flutter-config-brunch",
-  "version": "1.0.0",
-  "description": "Convert flutter json config to js",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+ssh://git@bitbucket.org/eonsequeira/flutter-config-brunch.git"
-  },
-  "author": "“Eon <“eons@yahoo.com”> (http:/www.fluttercms.com)",
-  "license": "ISC",
-  "homepage": "https://bitbucket.org/eonsequeira/flutter-config-brunch#readme",
-  "dependencies": {
-    "lodash.foreach": "^4.5.0"
-  }
+    "name": "@flipbyte/brunch-json",
+    "version": "0.1.0",
+    "description": "Adds json support to brunch and also allows defining functions among other things in json",
+    "main": "lib/index.js",
+    "module": "es/index.js",
+    "files": [
+        "es",
+        "lib",
+        "umd"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/flipbyte/formik-json-schema.git"
+    },
+    "scripts": {
+        "build": "nwb build-web-module --no-demo",
+        "clean": "nwb clean-module",
+        "prepublishOnly": "npm run build",
+        "test": "nwb test",
+        "test:coverage": "nwb test --coverage",
+        "test:watch": "nwb test --server"
+    },
+    "dependencies": {
+        "lodash.foreach": "^4.5.0"
+    },
+    "devDependencies": {
+        "nwb": "0.23.x"
+    },
+    "author": "",
+    "homepage": "",
+    "license": "MIT",
+    "keywords": [
+        "brunch-json",
+        "json-brunch",
+        "brunch",
+        "json",
+        "json-function",
+        "json-variable",
+        "json",
+        "function",
+        "variable"
+    ]
 }
