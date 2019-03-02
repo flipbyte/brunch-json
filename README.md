@@ -5,6 +5,7 @@
 [![npm package][npm-badge]][npm]
 [![Coverage Status][coveralls-badge]][coveralls]
 [![license][license-badge]][license]
+[![Codacy Badge][codacy-badge]][codacy]
 
 brunch-json adds json support to brunch and also allows defining functions among other things in json.
 
@@ -13,7 +14,7 @@ brunch-json adds json support to brunch and also allows defining functions among
 You can install brunch-json from npm as follows:
 
 ```js
-$ npm i @flipbyte/brunch-json
+$ npm install --save-dev @flipbyte/brunch-json
 ```
 
 ## License
@@ -30,3 +31,6 @@ The MIT License (MIT)
 
 [license-badge]: https://badgen.now.sh/badge/license/MIT
 [license]: ./LICENSE
+
+[codacy-badge]: https://api.codacy.com/project/badge/Grade/99ccf51b90ab46b5b2d5bb745d5a2411
+[codacy]: https://www.codacy.com/app/flipbyte/brunch-json?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=flipbyte/brunch-json&amp;utm_campaign=Badge_Grade
