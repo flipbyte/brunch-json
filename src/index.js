@@ -3,24 +3,30 @@
 const get = require('lodash.get');
 const set = require('lodash.set');
 const merge = require('lodash.merge');
+const handleAs = {
+  'object': 20,
+  'string': 10
+};
 
 class BrunchJson {
   constructor(config) {
     this.parsers = get(config, 'brunchJSON.parsers', []);
+  }
+  sort() {
+    this.parsers.sort((a, b) => {
+      a.sortOrder = a.sortOrder || 0;
+      b.sortOrder = b.sortOrder || 0;
+
+      return (handleAs[b.handleAs || 'string'] - handleAs[a.handleAs || 'string']) 
+          || (b.sortOrder || 0) - (a.sortOrder || 0);
+    });
   }
   compile(file) {
     if (!file || !file.data) {
       return Promise.resolve(file);
     }
 
-    this.parsers.sort((a, b) => {
-      a.sortOrder = a.sortOrder || 0;
-      b.sortOrder = b.sortOrder || 0;
-
-      if (a.sortOrder < b.sortOrder) return 1;
-      if (a.sortOrder > b.sortOrder) return -1;
-      return 0;
-    });
+    this.sort();
 
     var parsed = [];
     this.parsers.forEach((parser) => {
