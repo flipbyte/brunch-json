@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import BrunchJson from '../src';
 
 describe('Brunch json', () => {
@@ -15,43 +16,124 @@ describe('Brunch json', () => {
     expect(plugin.compile).to.be.an.instanceof(Function);
   })
 
-  describe('Parser sort order', () => {
-    it('orders parsers with handle argument "object" before the rest', () => {
-      plugin = new BrunchJson({
-        brunchJSON: {
-          parsers: [{
-            handleAs: 'object',
-            sortOrder: -2
-          }, {
-            handleAs: 'string',
-            sortOrder: -1
-          }, {
-            handleAs: 'string',
-            sortOrder: 10
-          }, {
-            handleAs: 'object',
-            sortOrder: 1000
-          }]
+  // describe('Parser sort order', () => {
+  //   it('orders parsers with handle argument "object" before the rest', () => {
+  //     plugin = new BrunchJson({
+  //       brunchJSON: {
+  //         parsers: [{
+  //           handleAs: 'object',
+  //           sortOrder: -2
+  //         }, {
+  //           handleAs: 'string',
+  //           sortOrder: -1
+  //         }, {
+  //           handleAs: 'string',
+  //           sortOrder: 10
+  //         }, {
+  //           handleAs: 'object',
+  //           sortOrder: 1000
+  //         }]
+  //       }
+  //     });
+
+  //     plugin.sort();
+
+  //     expect(plugin.parsers).to.eql([{
+  //       handleAs: 'object',
+  //       sortOrder: 1000
+  //     }, {
+  //       handleAs: 'object',
+  //       sortOrder: -2
+  //     }, {
+  //       handleAs: 'string',
+  //       sortOrder: 10
+  //     }, {
+  //       handleAs: 'string',
+  //       sortOrder: -1
+  //     }])
+  //   });
+  // });
+
+  describe('Parse', () => {
+    it('should parse "imports" and create a separate object with all the import', function () {
+      var data = '{\
+        "imports": {\
+          "import1": "function () { var a = 1 + 2 }",\
+          "import2": "function () { alert(1) }"\
+        }\
+      }';
+
+      var expected = '{"import1": "function () { var a = 1 + 2 }","import2": "function () { alert(1) }"}';
+
+      var result = plugin.parse({
+        parse: function (data) {
+          var newData = JSON.parse(data);
+          var imports;
+          if (newData && newData.imports) {
+            imports = _.map(newData.imports, (value, key) => `"${key}": "${value}"`);
+            delete data.imports;
+          }    
+          
+          return `{${imports.join(',')}}`;
         }
-      });
+      }, data);
 
-      plugin.sort();
+      expect(result).to.equal(expected);
+    });
 
-      expect(plugin.parsers).to.eql([{
-        handleAs: 'object',
-        sortOrder: 1000
-      }, {
-        handleAs: 'object',
-        sortOrder: -2
-      }, {
-        handleAs: 'string',
-        sortOrder: 10
-      }, {
-        handleAs: 'string',
-        sortOrder: -1
-      }])
+    it ('should parse "schemas" and create a separate object with all the schemas', function () {
+      var data = '{\
+        "schemas": {\
+          "schema1": {\
+            "sortOrder": 30,\
+            "type": "entity",\
+            "name": "schema1",\
+            "dependencies": {\
+              "depKey1": ["schema2"],\
+              "depKey2": "schema3"\
+            },\
+            "options": {\
+              "idAttribute": {\
+                "type": "function",\
+                "name": "fn1",\
+                "body": [\
+                  "return `${parent.siteId}-${value.word}`"\
+                ]\
+              }\
+            }\
+          },\
+          "schema2": {\
+            "sortOrder": 10,\
+            "type": "entity",\
+            "name": "schema2",\
+            "dependencies": {},\
+            "options": {}\
+          },\
+          "schema3": {\
+            "sortOrder": 20,\
+            "type": "entity",\
+            "name": "schema3"\
+          }\
+        }\
+      }';    
+
+      // var result = plugin.parse({
+      //   parse: function() {
+      //     var newData = JSON.parse(data);
+      //     var schemas = [];
+      //     if (newData && newData.schemas) {
+      //       schemas = _.map(_.sortBy(newData, ['sortOrder']), function(schema, key) {
+      //         var dependencies = _.map()
+      //         return `function () {
+      //           return new schema.Entity('${schema.name}`, )
+      //         }`
+      //       });
+      //     }
+      //   }
+      // })
     });
   });
+
 
   // it('should compile and produce valid result', function(done) {
   //   var content = '{\
