@@ -54,7 +54,7 @@ describe('Brunch json', () => {
   //   });
   // });
 
-  describe('Parse', () => {
+  describe('Parser.parse using the global variable data', () => {
     it('should parse "imports" and create a separate object with all the import', function () {
       var data = '{\
         "imports": {\
@@ -85,8 +85,7 @@ describe('Brunch json', () => {
       var data = '{\
         "schemas": {\
           "schema1": {\
-            "sortOrder": 30,\
-            "type": "entity",\
+            "type": "Entity",\
             "name": "schema1",\
             "dependencies": {\
               "depKey1": ["schema2"],\
@@ -94,8 +93,8 @@ describe('Brunch json', () => {
             },\
             "options": {\
               "idAttribute": {\
-                "type": "function",\
                 "name": "fn1",\
+                "args": "value, parent, key",\
                 "body": [\
                   "return `${parent.siteId}-${value.word}`"\
                 ]\
@@ -103,38 +102,107 @@ describe('Brunch json', () => {
             }\
           },\
           "schema2": {\
-            "sortOrder": 10,\
-            "type": "entity",\
+            "type": "Entity",\
             "name": "schema2",\
             "dependencies": {},\
             "options": {}\
           },\
           "schema3": {\
-            "sortOrder": 20,\
-            "type": "entity",\
+            "type": "Entity",\
             "name": "schema3"\
           }\
         }\
-      }';    
+      }'; 
+      
+      var expected = "{schema1: function () {return new schema.Entity(\'schema1\', {depKey1: [this.schema2], depKey2: this.schema3}, {idAttribute: function (value, parent, key) { return `${parent.siteId}-${value.word}` }}).bind(this);},\nschema2: function () {return new schema.Entity(\'schema2\', {}, {}).bind(this);},\nschema3: function () {return new schema.Entity(\'schema3\', {}, {}).bind(this);}}";
 
-      // var result = plugin.parse({
-      //   parse: function() {
-      //     var newData = JSON.parse(data);
-      //     var schemas = [];
-      //     if (newData && newData.schemas) {
-      //       schemas = _.map(_.sortBy(newData, ['sortOrder']), function(schema, key) {
-      //         var dependencies = _.map()
-      //         return `function () {
-      //           return new schema.Entity('${schema.name}`, )
-      //         }`
-      //       });
-      //     }
-      //   }
-      // })
+      var result = plugin.parse({
+        parse: function() {
+          var newData = JSON.parse(data);
+          var schemas = [];
+          if (newData && newData.schemas) {
+            schemas = _.map(newData.schemas, function(schema, key) {
+              var dependencies = _.map(schema.dependencies, (dependency, key) => {
+                var deps;
+                if (_.isArray(dependency)) {
+                  deps = `[this.${dependency[0]}]`;
+                } else {
+                  deps = `this.${dependency}`;
+                }
+                return `${key}: ${deps}`;
+              });
+
+              var options = _.map(schema.options, function (option, key) {
+                if (typeof option === 'string') {
+                  return option;
+                }
+
+                return `${key}: function (${option.args}) { ${option.body} }`;
+              }); 
+
+              var result = `${key}: function () {`
+                + `return new schema.Entity(`
+                  + `'${schema.name}', `
+                  + `{${dependencies.join(', ')}}, `
+                  + `{${options.join(', ')}}`
+                + `).bind(this);`
+              + `}`;
+
+              return result;
+            });
+          }
+
+          return `{${schemas.join(',\n')}}`;
+        }
+      });
+
+      expect(result).to.equal(expected);
+    });
+
+    it ('should parse pattern "%%some-string%%" to "some-string" from the original data json string (modifies original JSON string)', function () {
+      var data = '{\
+        "key1": "%%require(\'something\')%%",\
+        "key2": {\
+          "key3": "%%function(){return 1}%%",\
+          "key4": "something-else",\
+          "key5": ["%%variable-name%%", "function () { alert(\'dont parse this\')}", "%%parseThis()%%"]\
+        }\
+      }';
+
+      var expected = '{        "key1": require(\'something\'),        "key2": {          "key3": function(){return 1},          "key4": "something-else",          "key5": [variable-name, "function () { alert(\'dont parse this\')}", parseThis()]        }      }';
+
+      var result = plugin.parse({
+        parse: function() {
+          // data = JSON.stringify(data, null, 4);
+          var patt = /\"%%(.*?)%%\"/g;
+          var replacement = "$1";
+          data = data.replace(patt, replacement);
+          data = data.replace(/\\\//g, '/');
+        }
+      });
+
+      expect(typeof result).to.equal('undefined');
+      expect(data).to.equal(expected);
     });
   });
 
+  describe('Parsers in the plugin', () => {
+    describe('should compile and product valid result', () => {
+      it ('for object parser - imports', function(done) {
+        var content = '{\
+          "brunchJSON": {\
+            "parsers": [{
 
+            }]
+          }\
+          "imports": {\
+            "import1": "function () { var a = 1 + 2 }",\
+            "import2": "function () { alert(1) }"\
+          }\
+        }';
+      });
+    })
+  });
   // it('should compile and produce valid result', function(done) {
   //   var content = '{\
   //       "key": "value",\
