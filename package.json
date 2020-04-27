@@ -1,7 +1,7 @@
 {
     "name": "@flipbyte/brunch-json",
-    "version": "0.1.0",
-    "description": "Adds json support to brunch and also allows defining functions among other things in json",
+    "version": "0.2.0",
+    "description": "Adds json support to brunch and allows implementing custom parsers to customize the contents of the output file",
     "main": "lib/index.js",
     "module": "es/index.js",
     "files": [
@@ -21,12 +21,11 @@
         "test:coverage": "nwb test --coverage",
         "test:watch": "nwb test --server"
     },
-    "dependencies": {
-        "lodash.foreach": "^4.5.0"
-    },
+    "dependencies": {},
     "devDependencies": {
         "karma-chai-plugins": "^0.9.0",
-        "nwb": "0.23.x"
+        "nwb": "0.23.x",
+        "lodash": "^4.17.15"
     },
     "author": "",
     "homepage": "",
