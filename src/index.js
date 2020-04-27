@@ -9,10 +9,10 @@ class BrunchJson {
   constructor(config) {
     this.parsers = [];
     if (
-      typeof config.brunchJSON === 'object' 
-      && Array.isArray(config.brunchJSON.parsers)
+      typeof config.plugins.brunchJSON === 'object' 
+      && Array.isArray(config.plugins.brunchJSON.parsers)
     ) {
-      this.parsers = config.brunchJSON.parsers;
+      this.parsers = config.plugins.brunchJSON.parsers;
     }
   }
   
