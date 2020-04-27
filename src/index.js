@@ -1,70 +1,28 @@
 'use strict';
 
-const get = require('lodash.get');
-const set = require('lodash.set');
-const merge = require('lodash.merge');
 const handleAs = {
   'object': 20,
   'string': 10
 };
 
-// const parsers = {
-//   object: (file, config) => {
-//     var data = JSON.parse(file.data);
-//     var data = parser.get ? parser.get(file.data) : file.data;
-//     if (!data) {
-//       return;
-//     }
-
-//     let args = [data].concat(parser.args);
-//     let parsedData = parser.parse.apply(this, args);
-
-//     if (Array.isArray(parsedData) && parsedData.length == 2) {
-//       mergeData = parsedData[0];
-//       parsed.push(parsedData[1]);
-//     } else {
-//       mergeData = parser.set 
-//         ? set({}, parser.set, this.parseJson(parsedData)) 
-//         : this.parseJson(parsedData);
-//     }
-//   },
-//   string: (file, config) => {
-
-//   }
-// };
-
-// const parsers = {
-//   object: (file, config) => {
-//     var data;
-//     if (typeof config.beforeParse === 'function') {
-//       data = config.beforeParse(file);
-//     }
-
-//     if (!data) {
-//       return;
-//     }
-
-//     let args = [data].concat(config.args);
-//     let parsedData = config.parse.apply(this, args);
-
-//     if (typeof config.afterParse === 'function') {
-//       parser.afterParse(file);
-//     }
-//   },
-//   string: (file, config) => {
-
-//   },
-
-//   __dispatch: (file, config) => {
-
-//   }
-// };
-
 class BrunchJson {
   constructor(config) {
-    this.parsers = get(config, 'brunchJSON.parsers', []);
+    this.parsers = [];
+    if (
+      typeof config.brunchJSON === 'object' 
+      && Array.isArray(config.brunchJSON.parsers)
+    ) {
+      this.parsers = config.brunchJSON.parsers;
+    }
   }
   
+  /**
+   * Sort by handleAs and sortOrder properties in the parser object
+   * Sort all handleAs 'object' parsers before handleAs 'string' parsers
+   * 
+   * Default sortOrder = 0
+   * Default handleAs = 'string'
+   */
   sort() {
     this.parsers.sort((a, b) => {
       a.sortOrder = a.sortOrder || 0;
@@ -75,31 +33,61 @@ class BrunchJson {
     });
   }
   
-  validate (parser) {
-    // if (parser.get && typeof parser.get !== 'function') {
-    //   return 'parser.get has to be a function ' + typeof parser.get + ' provided.';
-    // }
-  
+  /**
+   * Validate parser by checking it contains a function parse.
+   * 
+   * @param {Object} parser 
+   */
+  validate (parser) {  
     if (typeof parser.parse !== 'function') {
       return 'parser.parse has to be a function' + typeof parser.parser + ' provided';
     }
   
-    // if (!parsers[parser.handleAs]) {
-    //   return 'Invalid parser.handleAs ' + parser.handleAs + ' provided (only string or object are possible)';
-    // }
-  
     return true;
   }
 
-  parse(parser, data) {
-    var err;
-    if ((err = this.validate(parser)) !== true) {
-      throw Error('Invalid parser: ' . err);
+  /**
+   * Parse the contents of the file using custom parsers.
+   * 
+   * The parse function should return one of the following:
+   * 1. undefined
+   * 2. Array of length 2 with the new data to replace current file.data, 
+   *    and the data to be prepended to the js file once all the parsers have been 
+   *    processed.
+   * 3. Array of length 1 with the new data to replace current file.data
+   * 
+   * @param {Object} file 
+   * 
+   * @return undefined|Array
+   */
+  parse(file) {
+    return function (parser) {
+      var err;
+      if ((err = this.validate(parser)) !== true) {
+        throw Error('Invalid parser: ' . err);
+      }
+  
+      var result = parser.parse(file);
+      if (!Array.isArray(result)) {
+        return;
+      }
+      
+      file.data = typeof result[0] === 'string' ? result[0] : JSON.stringify(result[0]);
+      if (result.length === 2) {
+        return result[1];
+      }
     }
-    
-    return parser.parse(data);
   }
 
+  /**
+   * 1. Sort all the parsers in the appropriate order 
+   * 2. Process the parsers
+   * 3. Filter parser results with undefined result
+   * 4. Stringify the final remaining file.data 
+   * 5. Replace the file.data with all the parsed data and then the stringified data.
+   * 
+   * @param {*} file 
+   */
   compile(file) {
     if (!file || !file.data) {
       return Promise.resolve(file);
@@ -107,52 +95,18 @@ class BrunchJson {
 
     this.sort();
 
-    var parsed = this.parsers.map(this.parse.bind(this, file.data));
-
-    // this.parsers.forEach((parser) => {
-    //   if ((err = this.validate(parser)) !== true) {
-    //     throw Error('Invalid parser: ' . err);
-    //   }
-
-    //   parsers[parser.handleAs](file, parser);
-
-    //   var data = parser.get ? parser.get(file.data) : file.data;
-    //   if (!data) {
-    //     return;
-    //   }
-
-    //   if (typeof parser.parse === 'function' && data) {
-    //     let args = [data].concat(parser.args);
-    //     let parsedData = parser.parse.apply(this, args);
-    //     if (parser.handleAs === 'object') {
-    //       var mergeData;
-    //       if (Array.isArray(parsedData) && parsedData.length == 2) {
-    //         mergeData = this.parseJson(parsedData[0]);
-    //         parsed.push(parsedData[1]);
-    //       } else {
-    //         mergeData = parser.set 
-    //         ? set({}, parser.set, this.parseJson(parsedData)) 
-    //         : this.parseJson(parsedData);
-    //       }
-    //       file.data = JSON.stringify(merge({}, file.data, mergeData));
-    //     } else if (parser.handleAs === 'string') {
-    //       file.data = parsedData;
-    //     }
-    //   }
-    // });
+    let parsed = this.parsers.map(this.parse(file).bind(this));
+    parsed = parsed.filter(data => typeof data !== 'undefined');
 
     let data = file.data;
-    data = JSON.stringify(data, null, 4);
-    data = data.replace(/\\\//g, '/');
+    // data = JSON.stringify(data, null, 4);
+    // data = data.replace(/\\\//g, '/');
 
     file.data = parsed.join('\n');
     file.data += parsed.length > 0 ? '\n': '';
     file.data += `exports.default = ${data}`;
 
     return Promise.resolve(file);
-  }
-  parseJson(jsonStr) {
-    return (new Function( "return " + jsonStr ) )() ;
   }
 }
 
