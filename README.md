@@ -17,6 +17,38 @@ You can install brunch-json from npm as follows:
 $ npm install --save-dev @flipbyte/brunch-json
 ```
 
+## Configuration
+
+You can pass custom parser object as follows:
+
+```js
+{
+    brunchJSON: {
+        parsers: [
+            {
+                handleAs: 'string',
+                parse: function(file) {
+                    // your code
+                    // return; OR
+                    // return [data, result] OR
+                    // return [data]
+                }
+            },
+         ...
+        ]
+    }
+}
+```
+
+#### Parser properties:
+- `handleAs` - 'string' | 'object' - (`Default`: string) This is just for prioritizing the object parsers over string parsers.  
+    - String parsers are the ones that directly manipulate the JSON string. 
+    - Object parsers parse the JSON string and process the object.
+
+    **Note** Handling the string parsers before the object parsers may cause issues if the JSON string has been modified to be valid JS object with (say) function definitions, while making it an invalid JSON string. object parsers most likely will use JSON.parse or other alternatives which will throw an error if the JSON string isn't valid.
+- `parse` - a callback function that receives 'file' as an argument. You can use this to modify the contents of the final compiled file in your customized format.
+- `sortOrder` - used to sort the parsers along with 'handleAs' property. (`Default`: 0)
+
 ## License
 The MIT License (MIT)
 
