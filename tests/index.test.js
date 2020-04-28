@@ -19,20 +19,22 @@ describe('Brunch json', () => {
   describe('Parser sort order', () => {
     it('orders parsers with handle argument "object" before the rest', () => {
       plugin = new BrunchJson({
-        brunchJSON: {
-          parsers: [{
-            handleAs: 'object',
-            sortOrder: -2
-          }, {
-            handleAs: 'string',
-            sortOrder: -1
-          }, {
-            handleAs: 'string',
-            sortOrder: 10
-          }, {
-            handleAs: 'object',
-            sortOrder: 1000
-          }]
+        plugins: {
+          brunchJSON: {
+            parsers: [{
+              handleAs: 'object',
+              sortOrder: -2
+            }, {
+              handleAs: 'string',
+              sortOrder: -1
+            }, {
+              handleAs: 'string',
+              sortOrder: 10
+            }, {
+              handleAs: 'object',
+              sortOrder: 1000
+            }]
+          }
         }
       });
 
@@ -58,79 +60,79 @@ describe('Brunch json', () => {
     describe('should compile and product valid result', () => {
       it ('for combined object and string parsers', function(done) {
         var plugin = new BrunchJson({
-          brunchJSON: {
-            parsers: [{
-              handleAs: 'string',
-              parse: function(file) {
-                var data = file.data;
-                // data = JSON.stringify(data, null, 4);
-                var patt = /\"%%(.*?)%%\"/g;
-                var replacement = "$1";
-                data = data.replace(patt, replacement);
-                data = data.replace(/\\\//g, '/');
-
-                return [data];
-              }
-            }, {
-              handleAs: 'object',
-              parse: function(file) {
-                var newData = JSON.parse(file.data);
-                var schemas = [];
-                if (newData && newData.schemas) {
-                  schemas = _.map(newData.schemas, function(schema, key) {
-                    var dependencies = _.map(schema.dependencies, (dependency, key) => {
-                      var deps;
-                      if (_.isArray(dependency)) {
-                        deps = `[this.${dependency[0]}]`;
-                      } else {
-                        deps = `this.${dependency}`;
-                      }
-                      return `${key}: ${deps}`;
-                    });
-      
-                    var options = _.map(schema.options, function (option, key) {
-                      if (typeof option === 'string') {
-                        return option;
-                      }
-      
-                      return `${key}: function (${option.args}) { ${option.body} }`;
-                    }); 
-      
-                    var result = `${key}: function () {`
-                      + `return new schema.Entity(`
-                        + `'${schema.name}', `
-                        + `{${dependencies.join(', ')}}, `
-                        + `{${options.join(', ')}}`
-                      + `).bind(this);`
-                    + `}`;
-      
-                    return result;
-                  });
-
-                  delete newData.schemas;
+          plugins: {
+            brunchJSON: {
+              parsers: [{
+                handleAs: 'string',
+                parse: function(data) {
+                  var patt = /\"%%(.*?)%%\"/g;
+                  var replacement = "$1";
+                  data = data.replace(patt, replacement);
+                  data = data.replace(/\\\//g, '/');
+  
+                  return [data];
                 }
-                
-                return [
-                  newData,
-                  `export const schemas = {${schemas.join(',\n')}};\n`
-                ];
-              }      
-            }, {
-              handleAs: 'object',
-              parse: function (file) {
-                var newData = JSON.parse(file.data);
-                var imports = [];
-                if (newData && newData.imports) {
-                  imports = _.map(newData.imports, (value, key) => `"${key}": ${value}`);
-                  delete newData.imports;
-                }    
-                
-                return [
-                  newData,
-                  `export const imports = {${imports.join(',')}};\n`
-                ];
-              }
-            }]
+              }, {
+                handleAs: 'object',
+                parse: function(data) {
+                  var newData = JSON.parse(data);
+                  var schemas = [];
+                  if (newData && newData.schemas) {
+                    schemas = _.map(newData.schemas, function(schema, key) {
+                      var dependencies = _.map(schema.dependencies, (dependency, key) => {
+                        var deps;
+                        if (_.isArray(dependency)) {
+                          deps = `[this.${dependency[0]}]`;
+                        } else {
+                          deps = `this.${dependency}`;
+                        }
+                        return `${key}: ${deps}`;
+                      });
+        
+                      var options = _.map(schema.options, function (option, key) {
+                        if (typeof option === 'string') {
+                          return option;
+                        }
+        
+                        return `${key}: function (${option.args}) { ${option.body} }`;
+                      }); 
+        
+                      var result = `${key}: function () {`
+                        + `return new schema.Entity(`
+                          + `'${schema.name}', `
+                          + `{${dependencies.join(', ')}}, `
+                          + `{${options.join(', ')}}`
+                        + `).bind(this);`
+                      + `}`;
+        
+                      return result;
+                    });
+  
+                    delete newData.schemas;
+                  }
+                  
+                  return [
+                    newData,
+                    `export const schemas = {${schemas.join(',\n')}};\n`
+                  ];
+                }      
+              }, {
+                handleAs: 'object',
+                parse: function (data) {
+                  var newData = JSON.parse(data);
+                  var imports = [];
+                  if (newData && newData.imports) {
+                    imports = _.map(newData.imports, (value, key) => `"${key}": ${value}`);
+                    delete newData.imports;
+                  }    
+                  
+                  return [
+                    newData,
+                    `export const imports = {${imports.join(',')}};\n`
+                  ];
+                }
+              }]
+            }
           }
         })
         var content = `{
