@@ -9,7 +9,8 @@ class BrunchJson {
   constructor(config) {
     this.parsers = [];
     if (
-      typeof config.plugins.brunchJSON === 'object' 
+      typeof config.plugins === 'object' 
+      && typeof config.plugins.brunchJSON === 'object' 
       && Array.isArray(config.plugins.brunchJSON.parsers)
     ) {
       this.parsers = config.plugins.brunchJSON.parsers;
@@ -67,7 +68,7 @@ class BrunchJson {
         throw Error('Invalid parser: ' . err);
       }
   
-      var result = parser.parse(file);
+      var result = parser.parse(file.data);
       if (!Array.isArray(result)) {
         return;
       }
@@ -99,8 +100,6 @@ class BrunchJson {
     parsed = parsed.filter(data => typeof data !== 'undefined');
 
     let data = file.data;
-    // data = JSON.stringify(data, null, 4);
-    // data = data.replace(/\\\//g, '/');
 
     file.data = parsed.join('\n');
     file.data += parsed.length > 0 ? '\n': '';
